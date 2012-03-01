@@ -52,6 +52,7 @@
     UIColor *_previousNavBarTintColor;
     UIBarStyle _previousNavBarStyle;
     UIStatusBarStyle _previousStatusBarStyle;
+	BOOL _previousStatusBarHidden;
     UIBarButtonItem *_previousViewControllerBackButton;
     
     // Misc
@@ -357,10 +358,12 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     if (SYSTEM_VERSION_LESS_THAN(@"5")) [self viewWillLayoutSubviews];
     
     // Status bar
-    if (self.wantsFullScreenLayout && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
+    if (self.wantsFullScreenLayout && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {		
         _previousStatusBarStyle = [[UIApplication sharedApplication] statusBarStyle];
         [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackTranslucent animated:animated];
     }
+	
+	_previousStatusBarHidden = [UIApplication sharedApplication].statusBarHidden;
     
     // Navigation bar appearance
     if (!_viewIsActive && [self.navigationController.viewControllers objectAtIndex:0] != self) {
@@ -396,6 +399,8 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     if (self.wantsFullScreenLayout && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
         [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle animated:animated];
     }
+	
+	[UIApplication sharedApplication].statusBarHidden = _previousStatusBarHidden;
     
 	// Super
 	[super viewWillDisappear:animated];
@@ -908,9 +913,9 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         
         // Status Bar
         if ([UIApplication instancesRespondToSelector:@selector(setStatusBarHidden:withAnimation:)]) {
-            [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:animated?UIStatusBarAnimationFade:UIStatusBarAnimationNone];
+            [[UIApplication sharedApplication] setStatusBarHidden:(_previousStatusBarHidden || hidden) withAnimation:animated?UIStatusBarAnimationFade:UIStatusBarAnimationNone];
         } else {
-            [[UIApplication sharedApplication] setStatusBarHidden:hidden animated:animated];
+            [[UIApplication sharedApplication] setStatusBarHidden:(_previousStatusBarHidden || hidden) animated:animated];
         }
         
         // Get status bar height if visible
